@@ -14,7 +14,7 @@ FROM php:8.3-apache
 
 # System libraries + PHP extensions
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        git unzip libzip-dev libonig-dev \
+        git unzip libzip-dev libonig-dev libsqlite3-dev \
     && docker-php-ext-install pdo pdo_sqlite mbstring zip \
     && a2enmod rewrite headers \
     && rm -rf /var/lib/apt/lists/*
