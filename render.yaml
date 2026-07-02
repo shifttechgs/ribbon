@@ -1,0 +1,51 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy: Render Dashboard → New → Blueprint → connect this repo.
+services:
+  - type: web
+    name: ribbon-plumbing
+    runtime: docker
+    plan: free                # upgrade to "starter" for production (free tier sleeps after inactivity)
+    region: frankfurt         # closest Render region to Cape Town
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true          # redeploy on push to the deploy branch
+    healthCheckPath: /
+    envVars:
+      - key: APP_NAME
+        value: "Ribbon Plumbing And Gas Heating"
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false           # set in dashboard: `php artisan key:generate --show`
+      - key: LOG_CHANNEL
+        value: stderr         # logs stream to Render's log viewer
+      - key: LOG_LEVEL
+        value: warning
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      # ── Mail (contact form) ──
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_HOST
+        value: aab.managing.services
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_SCHEME
+        value: smtp
+      - key: MAIL_USERNAME
+        sync: false           # set in dashboard
+      - key: MAIL_PASSWORD
+        sync: false           # set in dashboard (never committed)
+      - key: MAIL_FROM_ADDRESS
+        value: sales@shifttechgs.com
+      - key: MAIL_FROM_NAME
+        value: "Ribbon Plumbing And Gas Heating"
+      - key: CONTACT_EMAIL
+        value: sales@shifttechgs.com
+      - key: MAIL_TIMEOUT
+        value: "30"

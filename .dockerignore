@@ -1,0 +1,16 @@
+.git
+.gitignore
+.github
+node_modules
+vendor
+.env
+.env.backup
+.env.production
+public/build
+public/hot
+storage/logs/*.log
+database/*.sqlite
+.idea
+.vscode
+.fleet
+README.md

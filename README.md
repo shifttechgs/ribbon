@@ -1,58 +1,89 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Ribbon Plumbing & Gas Heating
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Marketing / lead-generation website for **Ribbon Plumbing And Gas Heating** — a PIRB & SAQCC-Gas registered plumbing and gas company serving Cape Town. A single-page site whose job is to turn visitors into phone calls, WhatsApp messages, and quote-form submissions.
 
-## About Laravel
+Built with **Laravel** (PHP 8.3), **Vite**, and hand-written vanilla CSS/JS. Design system: warm-black `#252422` + vivid-vermillion `#EB5E28` on a cream paper background.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Page structure
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Hero → Trust review scroll → Services (bento) → Why Us (sticky-stack) → Reviews (image + scrolling wall) → Process → Service Areas → FAQ → Contact/CTA → Footer.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Local setup
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Requirements: **PHP 8.3+**, **Composer**, **Node 20+**.
 
 ```bash
-composer require laravel/boost --dev
+# 1. Install dependencies
+composer install
+npm install
 
-php artisan boost:install
+# 2. Environment
+cp .env.example .env
+php artisan key:generate
+
+# 3. Database (SQLite by default)
+touch database/database.sqlite      # Windows: type nul > database\database.sqlite
+php artisan migrate
+
+# 4. Run (two terminals)
+php artisan serve                   # http://127.0.0.1:8000
+npm run dev                         # Vite dev server (hot reload)
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Production asset build:
 
-## Contributing
+```bash
+npm run build
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## Contact form email
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+The `/contact` route validates the submission, **logs every lead** (so none are lost), and **emails it** to `CONTACT_EMAIL` with the customer set as `Reply-To`. Both the hero form and the footer contact form post here.
 
-## Security Vulnerabilities
+Configure in `.env`:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```dotenv
+MAIL_MAILER=smtp                    # use "log" for local dev (writes to storage/logs/laravel.log)
+MAIL_HOST=your-smtp-host
+MAIL_PORT=587
+MAIL_SCHEME=smtp
+MAIL_USERNAME=your-smtp-user
+MAIL_PASSWORD=your-smtp-password
+MAIL_FROM_ADDRESS="noreply@yourdomain.co.za"
+MAIL_FROM_NAME="Ribbon Plumbing And Gas Heating"
+CONTACT_EMAIL="where-leads-should-go@yourdomain.co.za"
+```
 
-## License
+> Use a `MAIL_FROM_ADDRESS` on a domain you control with SPF/DKIM configured, or leads may land in spam.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## Deploy to Render (Docker Blueprint)
+
+Render has no native PHP runtime, so the app ships as a Docker container (`Dockerfile` + `docker-entrypoint.sh`), described declaratively in `render.yaml`.
+
+1. **Push** this repo to GitHub (done).
+2. In Render: **New → Blueprint**, connect the `shifttechgs/ribbon` repo. Render reads `render.yaml` and creates the `ribbon-plumbing` web service.
+3. Set the secret env vars (marked `sync: false`) when prompted:
+   - `APP_KEY` — run `php artisan key:generate --show` locally and paste the `base64:…` value.
+   - `MAIL_USERNAME`, `MAIL_PASSWORD` — your SMTP credentials.
+4. **Apply** → Render builds the image and deploys. `APP_URL` is set automatically from the Render URL.
+
+Notes:
+- **No database required** in production: sessions/cache use the `file` driver and the queue is `sync`, so there are no migrations to run.
+- The **free plan sleeps** after inactivity (slow first request). Use `starter` for a production site (edit `plan:` in `render.yaml`).
+- Logs (including captured leads) stream to Render's log viewer via `LOG_CHANNEL=stderr`.
+- `autoDeploy` is on — pushing to the deploy branch redeploys automatically.
+
+---
+
+## Project notes
+
+- `docs/` holds the original strategy documents (business, SEO, design, instructions). The design/palette has since evolved — treat the live CSS as the source of truth.
+- Finalise before launch: reviewer photo, service-card background photos, footer registration numbers (`PIRB Reg. No. XXXXX`), and the "Read all reviews on Google" link (point it at your Google Business Profile).
